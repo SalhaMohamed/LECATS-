@@ -1,0 +1,51 @@
+.admin-dashboard {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f4f6f8;
+  }
+  
+  .sidebar {
+    width: 220px;
+    background-color: #1a1a1a;
+    color: white;
+    padding: 20px;
+  }
+  
+  .sidebar h2 {
+    margin-bottom: 20px;
+  }
+  
+  .sidebar ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .sidebar li {
+    margin: 15px 0;
+    cursor: pointer;
+  }
+  
+  .dashboard-content {
+    flex: 1;
+    padding: 30px;
+  }
+  
+  .cards {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+  }
+  
+  .card {
+    background: white;
+    padding: 20px;
+    flex: 1;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .card h3 {
+    margin-bottom: 10px;
+  }
+  
