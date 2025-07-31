@@ -2,6 +2,7 @@ package com.project.lecats.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -11,8 +12,11 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private final String SECRET_KEY = "12345678901234567890123456789012"; // 32-char secret (min. 256-bit)
-    private final long EXPIRATION_MS = 86400000; // 24 hours
+    @Value("${jwt.secret}")
+    private String SECRET_KEY;
+    
+    @Value("${jwt.expiration}")
+    private long EXPIRATION_MS;
 
     private Key getSignInKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
