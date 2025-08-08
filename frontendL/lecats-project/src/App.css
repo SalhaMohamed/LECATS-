@@ -1,0 +1,39 @@
+/* Keep this for consistent box-sizing across the app */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  /* Set a neutral background color for the entire app */
+  background-color: #f8f9fa; /* Bootstrap's light grey */
+}
+
+/* MODIFICATION 1: Remove app-wide centering from #root */
+/* This allows components like navbars to be full-width. */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* MODIFICATION 2: Remove the placeholder logo and animation styles. */
+/* These are not needed unless you are using the exact same logos. */
+/* .logo { ... }
+  .logo:hover { ... }
+  .logo.react:hover { ... }
+  @keyframes logo-spin { ... }
+*/
+
+/* MODIFICATION 3: Remove generic placeholder styles. */
+/* You will be using Bootstrap's card styles instead. */
+/*
+  .card { ... }
+  .read-the-docs { ... }
+*/

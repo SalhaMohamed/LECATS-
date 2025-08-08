@@ -1,0 +1,14 @@
+/*
+  This file is now minimal because Bootstrap handles most of the global styling,
+  including resets, typography, and component styles.
+*/
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; /* You can keep the font definition */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Set a neutral background color that Bootstrap components will sit on top of */
+  background-color: #f8f9fa; /* A light grey */
+}
