@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Nav, Button } from 'react-bootstrap';
-import { CalendarPlus, Table, CheckCircleFill, XCircleFill, Download, Clipboard2Check, Trash } from 'react-bootstrap-icons';
-import api from '../../api'; // Using the central api instance
+import { CalendarPlus, Table, CheckCircleFill, Download, Clipboard2Check, Trash } from 'react-bootstrap-icons';
+import api from '../../api';
 
 function HODDashboard() {
   const [view, setView] = useState('timetable');
+  
+  // State for Timetable Management
   const [schedules, setSchedules] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [lecturers, setLecturers] = useState([]);
+  const [departments, setDepartments] = useState([]); // For special schedule form
   const [scheduleFormData, setScheduleFormData] = useState({
     subject_id: '',
     lecturer_id: '',
@@ -16,30 +19,41 @@ function HODDashboard() {
     start_time: '',
     end_time: ''
   });
+  const [specialScheduleFormData, setSpecialScheduleFormData] = useState({
+    subject_id: '',
+    lecturer_id: '',
+    class_date: '',
+    start_time: '',
+    end_time: '',
+    target_department_id: ''
+  });
+  
+  // State for Pending Verifications
   const [pendingAttendances, setPendingAttendances] = useState([]);
 
   useEffect(() => {
     fetchHODData();
     fetchSchedules();
     fetchPending();
+    fetchDepartments(); // Fetch all departments for the new form
   }, []);
   
   async function fetchHODData() {
     try {
-        const res = await api.get('/api/hod/data-for-timetable');
-        setSubjects(res.data.subjects);
-        setLecturers(res.data.lecturers);
+      const res = await api.get('/api/hod/data-for-timetable');
+      setSubjects(res.data.subjects);
+      setLecturers(res.data.lecturers);
     } catch (error) {
-        toast.error('Failed to fetch subjects and lecturers');
+      toast.error('Failed to fetch subjects and lecturers');
     }
   }
 
   async function fetchSchedules() {
     try {
-        const res = await api.get('/api/hod/schedules');
-        setSchedules(res.data);
+      const res = await api.get('/api/hod/schedules');
+      setSchedules(res.data);
     } catch (error) {
-        toast.error(error.response?.data?.msg || 'Failed to fetch schedule');
+      toast.error(error.response?.data?.msg || 'Failed to fetch schedule');
     }
   }
 
@@ -52,30 +66,53 @@ function HODDashboard() {
     }
   }
 
+  async function fetchDepartments() {
+    try {
+      const res = await api.get('/api/departments');
+      setDepartments(res.data);
+    } catch (error) {
+      toast.error("Could not load departments");
+    }
+  }
+
   const handleScheduleFormChange = (e) => {
     setScheduleFormData({ ...scheduleFormData, [e.target.name]: e.target.value });
   };
   
+  const handleSpecialScheduleFormChange = (e) => {
+    setSpecialScheduleFormData({ ...specialScheduleFormData, [e.target.name]: e.target.value });
+  };
+
   const handleAddSchedule = async (e) => {
     e.preventDefault();
     try {
-        await api.post('/api/hod/schedules', scheduleFormData);
-        toast.success('Class added to timetable successfully!');
-        fetchSchedules();
+      await api.post('/api/hod/schedules', scheduleFormData);
+      toast.success('Class added to timetable successfully!');
+      fetchSchedules();
     } catch (error) {
-        toast.error(error.response?.data?.msg || 'Failed to schedule class');
+      toast.error(error.response?.data?.msg || 'Failed to schedule class');
+    }
+  };
+
+  const handleAddSpecialSchedule = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/api/hod/special-schedules', specialScheduleFormData);
+      toast.success('Special class scheduled successfully!');
+    } catch (error) {
+      toast.error(error.response?.data?.msg || 'Failed to schedule special class');
     }
   };
 
   const handleDeleteSchedule = async (id) => {
     if (window.confirm('Are you sure you want to remove this class from the schedule?')) {
-        try {
-            await api.delete(`/api/hod/schedules/${id}`);
-            toast.success('Scheduled class deleted successfully!');
-            fetchSchedules();
-        } catch (error) {
-            toast.error(error.response?.data?.msg || 'Failed to delete scheduled class');
-        }
+      try {
+        await api.delete(`/api/hod/schedules/${id}`);
+        toast.success('Scheduled class deleted successfully!');
+        fetchSchedules();
+      } catch (error) {
+        toast.error(error.response?.data?.msg || 'Failed to delete scheduled class');
+      }
     }
   };
 
@@ -94,7 +131,7 @@ function HODDashboard() {
   const renderTimetableManager = () => (
     <>
       <div className="card shadow-sm mb-4">
-        <div className="card-header d-flex align-items-center"><CalendarPlus size={20} className="me-2"/><h5 className="mb-0">Schedule a New Class</h5></div>
+        <div className="card-header d-flex align-items-center"><CalendarPlus size={20} className="me-2"/><h5 className="mb-0">Schedule a Regular (Weekly) Class</h5></div>
         <div className="card-body">
           <form onSubmit={handleAddSchedule} className="row g-3 align-items-end">
             <div className="col-md-4"><label htmlFor="subject_id" className="form-label">Subject</label><select name="subject_id" className="form-select" onChange={handleScheduleFormChange} required><option value="">-- Select Subject --</option>{subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
@@ -105,6 +142,24 @@ function HODDashboard() {
           </form>
         </div>
       </div>
+
+      <div className="card shadow-sm mb-4">
+        <div className="card-header d-flex align-items-center">
+          <CalendarPlus size={20} className="me-2 text-warning"/>
+          <h5 className="mb-0">Schedule a Special (One-Time) Class</h5>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleAddSpecialSchedule} className="row g-3 align-items-end">
+            <div className="col-md-6 col-lg-3"><label className="form-label">Subject</label><select name="subject_id" className="form-select" onChange={handleSpecialScheduleFormChange} required><option value="">-- Select Subject --</option>{subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+            <div className="col-md-6 col-lg-3"><label className="form-label">Lecturer</label><select name="lecturer_id" className="form-select" onChange={handleSpecialScheduleFormChange} required><option value="">-- Select Lecturer --</option>{lecturers.map(l => <option key={l.id} value={l.id}>{l.full_name}</option>)}</select></div>
+            <div className="col-md-6 col-lg-3"><label className="form-label">Target Department (for CR)</label><select name="target_department_id" className="form-select" onChange={handleSpecialScheduleFormChange} required><option value="">-- Select Department --</option>{departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></div>
+            <div className="col-md-6 col-lg-3"><label className="form-label">Date</label><input type="date" name="class_date" className="form-control" onChange={handleSpecialScheduleFormChange} required/></div>
+            <div className="col-md-8 col-lg-3"><div className="row g-2"><div className="col-6"><label className="form-label">From</label><input type="time" name="start_time" className="form-control" onChange={handleSpecialScheduleFormChange} required/></div><div className="col-6"><label className="form-label">To</label><input type="time" name="end_time" className="form-control" onChange={handleSpecialScheduleFormChange} required/></div></div></div>
+            <div className="col-12 text-end"><button className="btn btn-warning" type="submit">Add Special Schedule</button></div>
+          </form>
+        </div>
+      </div>
+      
       <div className="card shadow-sm">
         <div className="card-header d-flex align-items-center"><Table size={20} className="me-2"/><h5 className="mb-0">Current Timetable (Active Semester)</h5></div>
         <div className="card-body p-0"><div className="table-responsive"><table className="table table-striped mb-0 align-middle">

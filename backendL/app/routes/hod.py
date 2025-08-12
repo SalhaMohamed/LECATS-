@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
 from ..models import db, User, Program, Subject, Semester, ClassSchedule, Attendance
-from datetime import time
-
+from datetime import date, time
+from ..models import db, SpecialSchedule
 hod_bp = Blueprint('hod', __name__, url_prefix='/api/hod')
 
 # Helper function to get HOD's department ID from token
@@ -117,3 +117,25 @@ def verify_attendance(attendance_id):
     attendance.verified = True
     db.session.commit()
     return jsonify({'msg': 'Attendance verified'})
+
+@hod_bp.route('/special-schedules', methods=['POST'])
+@jwt_required()
+def add_special_schedule():
+    hod_id = get_jwt()['id']
+    data = request.json
+    required_fields = ['subject_id', 'lecturer_id', 'class_date', 'start_time', 'end_time', 'target_department_id']
+    if not all(field in data for field in required_fields):
+        return jsonify({'msg': 'Missing required fields'}), 400
+
+    new_special_class = SpecialSchedule(
+        subject_id=data['subject_id'],
+        lecturer_id=data['lecturer_id'],
+        class_date=date.fromisoformat(data['class_date']),
+        start_time=time.fromisoformat(data['start_time']),
+        end_time=time.fromisoformat(data['end_time']),
+        creating_hod_id=hod_id,
+        target_department_id=data['target_department_id']
+    )
+    db.session.add(new_special_class)
+    db.session.commit()
+    return jsonify({'msg': 'Special class scheduled successfully'}), 201
