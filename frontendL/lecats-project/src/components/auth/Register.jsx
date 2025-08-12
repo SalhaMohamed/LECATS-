@@ -1,28 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate, Link } from 'react-router-dom';
-// Import the eye icons
 import { EyeFill, EyeSlashFill } from 'react-bootstrap-icons';
+import api from '../../api'; // Using our central api instance
 
 function Register() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('CR');
   const [password, setPassword] = useState('');
-  // NEW STATE: To manage password visibility
   const [showPassword, setShowPassword] = useState(false);
-  
   const [departments, setDepartments] = useState([]);
   const [departmentId, setDepartmentId] = useState('');
-  
   const navigate = useNavigate();
 
-  // Fetch departments for the dropdown
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/departments');
+        const res = await api.get('/api/departments');
         setDepartments(res.data);
       } catch (error) {
         toast.error("Could not load departments");
@@ -34,10 +29,10 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/auth/register', {
-        full_name: fullName,
-        email,
-        password,
+      await api.post('/auth/register', {
+        full_name: fullName.trim(),
+        email: email.trim(),
+        password: password, // No trim on password
         role,
         department_id: departmentId
       });
@@ -81,19 +76,20 @@ function Register() {
               <label htmlFor="department">Select Department</label>
             </div>
 
-            {/* MODIFIED PASSWORD INPUT */}
             <div className="form-floating mb-4 position-relative">
               <input
-                type={showPassword ? "text" : "password"} // Dynamic type
+                type={showPassword ? "text" : "password"}
                 className="form-control"
                 id="password"
                 placeholder="Password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
+                // ADDED: Password validation pattern and title
+                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,10}$"
+                title="Password must be 6-10 characters and include an uppercase, lowercase, number, and special character."
               />
               <label htmlFor="password">Password</label>
-              {/* Eye icon button */}
               <span 
                 className="position-absolute top-50 end-0 translate-middle-y me-3" 
                 onClick={() => setShowPassword(!showPassword)} 

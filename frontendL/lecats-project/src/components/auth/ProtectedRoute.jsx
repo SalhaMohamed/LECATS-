@@ -6,7 +6,7 @@ const ProtectedRoute = () => {
 
   // If a token exists, render the child component (via <Outlet />)
   // Otherwise, redirect to the /login page
-  return token ? <Outlet /> : <Navigate to="/login" replace />;
+  return token ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;

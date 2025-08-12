@@ -1,14 +1,14 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Import your new Landing Page
+import LandingPage from './components/public/LandingPage';
 
 // Layout and Protection
 import MainLayout from './components/layout/MainLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-
-// Auth Pages
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
 
 // Dashboard Pages
 import CRDashboard from './components/dashboards/CRDashboard';
@@ -20,25 +20,22 @@ function App() {
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      <Router>
-        <Routes>
-          {/* Public routes that anyone can access */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<Login />} />
+      <Routes>
+        {/* --- Public Page --- */}
+        {/* The main path "/" now shows your new LandingPage */}
+        <Route path="/" element={<LandingPage />} />
 
-          {/* Protected routes that require a user to be logged in */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<MainLayout />}>
-              <Route path="/cr" element={<CRDashboard />} />
-              <Route path="/lecturer" element={<LecturerDashboard />} />
-              <Route path="/hod" element={<HODDashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-            </Route>
+        {/* --- Protected Dashboard Pages --- */}
+        {/* These routes are wrapped in a layout that includes the main navbar */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/hod" element={<HODDashboard />} />
+            <Route path="/lecturer" element={<LecturerDashboard />} />
+            <Route path="/cr" element={<CRDashboard />} />
           </Route>
-          
-        </Routes>
-      </Router>
+        </Route>
+      </Routes>
     </>
   );
 }
