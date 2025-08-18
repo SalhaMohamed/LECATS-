@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Modal, Button, Form, Accordion } from 'react-bootstrap';
-import { Trash, Building, CalendarCheck, CheckCircleFill, MortarboardFill, Book, PencilSquare, Power, FileEarmarkPdf } from 'react-bootstrap-icons'; 
+import { Modal, Button, Form, Accordion, Nav, Tab } from 'react-bootstrap';
+import { Trash, Building, CalendarCheck, CheckCircleFill, MortarboardFill, Book, PencilSquare, Power, FileEarmarkPdf } from 'react-bootstrap-icons';
 import api from '../../api';
+import useDarkMode from '../../useDarkMode';
+import ReportCharts from './ReportCharts';
 
 function AdminDashboard() {
+  const [theme] = useDarkMode();
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [semesters, setSemesters] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  
   const [newDepartmentName, setNewDepartmentName] = useState('');
   const [semesterFormData, setSemesterFormData] = useState({ year: new Date().getFullYear(), semester_number: '1', start_date: '', end_date: '' });
   const [programFormData, setProgramFormData] = useState({ name: '', level: 'Degree', department_id: '', duration_in_years: '3' });
   const [subjectFormData, setSubjectFormData] = useState({ name: '', code: '', program_id: '', year_of_study: '1' });
   const [userFormData, setUserFormData] = useState({ full_name: '', email: '', password: '', role: 'CR', department_id: '' });
-  
   const [modalState, setModalState] = useState({ isOpen: false, type: null, data: null });
   const [editFormData, setEditFormData] = useState({});
-
   const [reportFilters, setReportFilters] = useState({ start_date: '', end_date: '', department_id: '' });
   const [reportData, setReportData] = useState(null);
 
@@ -206,38 +206,55 @@ function AdminDashboard() {
               <div className="col-md-3"><label htmlFor="reportEndDate" className="form-label">End Date</label><input type="date" name="end_date" className="form-control" onChange={(e) => setReportFilters({...reportFilters, end_date: e.target.value})} required/></div>
               <div className="col-md-2"><button className="btn btn-info w-100" type="submit">Generate</button></div>
             </form>
+            
             {reportData && (
-              <div className="mt-4"><hr/>
-                <div className="d-flex justify-content-between align-items-center"><h4>Report Results</h4><button className="btn btn-success" onClick={handleGenerateCsvReport}><FileEarmarkPdf className="me-2"/>Download as CSV</button></div>
-                <div className="p-3 my-3 bg-light rounded border">
-                  <strong>Department:</strong> {reportData.summary.department_name}<br/>
-                  <strong>Period:</strong> {reportData.summary.period}<br/>
-                  <strong>Total Classes Recorded:</strong> {reportData.summary.total_classes_recorded}<br/>
-                  <strong>Overall Attendance Rate:</strong> <span className="fw-bold fs-5">{reportData.summary.overall_attendance_rate}%</span>
-                </div>
-
-              <div className="row my-3">
-                <div className="col-md-6">
-                  <div className="card text-center h-100">
-                  <div className="card-body">
-                    <h6 className="card-title text-muted">Most Present Lecturer</h6>
-                    <p className="card-text fs-4 fw-bold">{reportData.highlights.most_present_lecturer || 'N/A'}</p>
-                  </div>
-                  </div>
-                </div>
-              <div className="col-md-6">
-                  <div className="card text-center h-100">
-                    <div className="card-body">
-                      <h6 className="card-title text-muted">Lecturer with Most Absences</h6>
-                      <p className="card-text fs-4 fw-bold">{reportData.highlights.highest_absence_lecturer || 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-                <div className="table-responsive"><table className="table table-bordered"><thead className="table-secondary"><tr><th>Lecturer</th><th>Total Classes</th><th>Attended</th><th>Missed</th><th>Attendance Rate</th></tr></thead><tbody>
-                  {reportData.breakdown.map(lec => (<tr key={lec.lecturer_name}><td>{lec.lecturer_name}</td><td>{lec.total_classes}</td><td>{lec.classes_attended}</td><td>{lec.classes_missed}</td><td>{lec.attendance_rate}%</td></tr>))}
-                </tbody></table></div>
+              <div className="mt-4">
+                <hr/>
+                <h4>Report Results</h4>
+                <Tab.Container defaultActiveKey="summary">
+                  <Nav variant="tabs" className="mb-3">
+                    <Nav.Item><Nav.Link eventKey="summary">Summary & Details</Nav.Link></Nav.Item>
+                    <Nav.Item><Nav.Link eventKey="visuals">Visual Report</Nav.Link></Nav.Item>
+                  </Nav>
+                  <Tab.Content>
+                    <Tab.Pane eventKey="summary">
+                      <div className="d-flex justify-content-end mb-3">
+                        <button className="btn btn-success" onClick={handleGenerateCsvReport}>
+                          <FileEarmarkPdf className="me-2"/>Download as CSV
+                        </button>
+                      </div>
+                      <div className="p-3 my-3 rounded border">
+                        <strong>Department:</strong> {reportData.summary.department_name}<br/>
+                        <strong>Period:</strong> {reportData.summary.period}<br/>
+                        <strong>Total Classes Recorded:</strong> {reportData.summary.total_classes_recorded}<br/>
+                        <strong>Overall Attendance Rate:</strong> <span className="fw-bold fs-5">{reportData.summary.overall_attendance_rate}%</span>
+                      </div>
+                      <div className="row my-3">
+                        <div className="col-md-6 mb-3 mb-md-0"><div className="card text-center h-100"><div className="card-body">
+                          <h6 className="card-title text-muted">Most Present Lecturer</h6>
+                          <p className="card-text fs-4 fw-bold">{reportData.highlights.most_present_lecturer || 'N/A'}</p>
+                        </div></div></div>
+                        <div className="col-md-6"><div className="card text-center h-100"><div className="card-body">
+                          <h6 className="card-title text-muted">Lecturer with Most Absences</h6>
+                          <p className="card-text fs-4 fw-bold">{reportData.highlights.highest_absence_lecturer || 'N/A'}</p>
+                        </div></div></div>
+                      </div>
+                      <div className="table-responsive">
+                        <table className={`table table-bordered ${theme === 'dark' ? 'table-dark' : ''}`}>
+                          <thead><tr><th>Lecturer</th><th>Total Classes</th><th>Attended</th><th>Missed</th><th>Attendance Rate</th></tr></thead>
+                          <tbody>{reportData.breakdown.map(lec => (<tr key={lec.lecturer_name}><td>{lec.lecturer_name}</td><td>{lec.total_classes}</td><td>{lec.classes_attended}</td><td>{lec.classes_missed}</td><td>{lec.attendance_rate}%</td></tr>))}</tbody>
+                        </table>
+                      </div>
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="visuals">
+                      <div className="card">
+                        <div className="card-body">
+                          <ReportCharts reportData={reportData} />
+                        </div>
+                      </div>
+                    </Tab.Pane>
+                  </Tab.Content>
+                </Tab.Container>
               </div>
             )}
           </div>

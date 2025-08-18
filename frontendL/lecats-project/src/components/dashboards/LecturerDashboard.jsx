@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Modal, Button, Nav } from 'react-bootstrap';
-import { Upload, PencilSquare, InfoCircleFill } from 'react-bootstrap-icons';
+import { Upload, PencilSquare, InfoCircleFill, CalendarEvent } from 'react-bootstrap-icons';
 import api from '../../api';
 
 function LecturerDashboard() {
   const [schedule, setSchedule] = useState([]);
+  const [specialSchedules, setSpecialSchedules] = useState([]); // New state for special classes
   const [isLoading, setIsLoading] = useState(true);
   const [activeDay, setActiveDay] = useState(new Date().toLocaleDateString('en-US', { weekday: 'long' }));
   
@@ -23,7 +24,8 @@ function LecturerDashboard() {
     setIsLoading(true);
     try {
       const res = await api.get('/api/lecturer/dashboard-data');
-      setSchedule(res.data.schedule);
+      setSchedule(res.data.weekly_schedule);
+      setSpecialSchedules(res.data.special_schedules); // Set the new state
     } catch (error) {
       toast.error(error.response?.data?.msg || 'Failed to load dashboard data');
     } finally {
@@ -82,13 +84,30 @@ function LecturerDashboard() {
       <div className="container-fluid p-4">
         <h1 className="h2 mb-4 fw-bold">Lecturer Dashboard</h1>
         
+        {specialSchedules.length > 0 && (
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-warning text-dark">
+              <h5 className="mb-0"><CalendarEvent className="me-2"/>Upcoming Special Classes</h5>
+            </div>
+            <div className="card-body">
+              <ul className="list-group list-group-flush">
+                {specialSchedules.map(s => (
+                  <li key={s.id} className="list-group-item">
+                    <strong>{s.subject_name}</strong> on {new Date(s.class_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    <br />
+                    <small className="text-muted">{s.start_time} - {s.end_time}</small>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
         <div className="card shadow-sm">
           <div className="card-header">
             <Nav variant="tabs" activeKey={activeDay} onSelect={(k) => setActiveDay(k)}>
               {daysOfWeek.map(day => (
-                <Nav.Item key={day}>
-                  <Nav.Link eventKey={day}>{day}</Nav.Link>
-                </Nav.Item>
+                <Nav.Item key={day}><Nav.Link eventKey={day}>{day}</Nav.Link></Nav.Item>
               ))}
             </Nav>
           </div>
@@ -100,6 +119,7 @@ function LecturerDashboard() {
                 classesForDay.map(s => (
                   <div key={s.id} className="mb-4">
                     <h5>{s.subject_name}</h5>
+                    <p className="text-muted mb-2"><em>For Program: {s.program_name}</em></p>
                     <p className="text-muted">{s.start_time} - {s.end_time}</p>
                     <div className="table-responsive">
                       <table className="table table-sm table-bordered">

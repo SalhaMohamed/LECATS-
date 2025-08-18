@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
-from ..models import db, User, Program, Subject, Semester, ClassSchedule, Attendance
+from ..models import db, User, Program, Subject, Semester, ClassSchedule, Attendance, SpecialSchedule
 from datetime import date, time
-from ..models import db, SpecialSchedule
+
 hod_bp = Blueprint('hod', __name__, url_prefix='/api/hod')
 
 # Helper function to get HOD's department ID from token
@@ -26,7 +26,7 @@ def get_hod_timetable_data():
 
     return jsonify({
         'lecturers': [{'id': l.id, 'full_name': l.full_name} for l in lecturers],
-        'subjects': [{'id': s.id, 'name': f"{s.code} - {s.name}"} for s in subjects]
+        'subjects': [{'id': s.id, 'name': f"{s.program.name}: {s.code} - {s.name}"} for s in subjects]
     })
 
 @hod_bp.route('/schedules', methods=['GET', 'POST'])

@@ -11,7 +11,7 @@ function HODDashboard() {
   const [schedules, setSchedules] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [lecturers, setLecturers] = useState([]);
-  const [departments, setDepartments] = useState([]); // For special schedule form
+  const [departments, setDepartments] = useState([]);
   const [scheduleFormData, setScheduleFormData] = useState({
     subject_id: '',
     lecturer_id: '',
@@ -35,7 +35,7 @@ function HODDashboard() {
     fetchHODData();
     fetchSchedules();
     fetchPending();
-    fetchDepartments(); // Fetch all departments for the new form
+    fetchDepartments();
   }, []);
   
   async function fetchHODData() {
