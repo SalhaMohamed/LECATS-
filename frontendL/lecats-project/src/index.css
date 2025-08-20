@@ -12,7 +12,7 @@ body {
   margin: 0;
   /* A nice, modern gradient background */
   background: linear-gradient(to right, #2c3e50, #4ca1af);
-  background-attachment: fixed; /* Keeps the gradient still while scrolling */
+  background-attachment: fixed; 
 }
 
 /* For smooth dark-mode transitions */

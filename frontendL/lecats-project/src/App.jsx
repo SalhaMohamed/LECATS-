@@ -3,14 +3,12 @@ import { Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Import your new Landing Page
 import LandingPage from './components/public/LandingPage';
 
-// Layout and Protection
+
 import MainLayout from './components/layout/MainLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
-// Dashboard Pages
 import CRDashboard from './components/dashboards/CRDashboard';
 import LecturerDashboard from './components/dashboards/LecturerDashboard';
 import HODDashboard from './components/dashboards/HODDashboard';
@@ -22,7 +20,7 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <Routes>
         {/* --- Public Page --- */}
-        {/* The main path "/" now shows your new LandingPage */}
+        
         <Route path="/" element={<LandingPage />} />
 
         {/* --- Protected Dashboard Pages --- */}

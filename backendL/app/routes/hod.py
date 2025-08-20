@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
-from ..models import db, User, Program, Subject, Semester, ClassSchedule, Attendance, SpecialSchedule
 from datetime import date, time
+from sqlalchemy.exc import IntegrityError
+from ..models import db, User, Program, Subject, Semester, ClassSchedule, Attendance, SpecialSchedule
 
 hod_bp = Blueprint('hod', __name__, url_prefix='/api/hod')
 
@@ -38,17 +39,29 @@ def manage_hod_schedules():
     
     active_semester = Semester.query.filter_by(is_active=True).first()
     if not active_semester:
-        return jsonify({'msg': 'No active semester set'}), 404
-
+        # For GET requests, it's okay to return empty, but POST needs an active semester.
+        if request.method == 'POST':
+            return jsonify({'msg': 'No active semester set'}), 404
+        # For GET request, we can still fetch special schedules
+        
     if request.method == 'GET':
+        # Get regular weekly schedules
         schedules = ClassSchedule.query.join(Subject).join(Program).filter(
             Program.department_id == department_id,
-            ClassSchedule.semester_id == active_semester.id
+            ClassSchedule.semester_id == active_semester.id if active_semester else -1 # Avoid error if no active semester
         ).all()
-        return jsonify([{
-            'id': s.id, 'subject_name': s.subject.name, 'lecturer_name': s.lecturer.full_name,
-            'day_of_week': s.day_of_week, 'start_time': s.start_time.strftime('%H:%M'), 'end_time': s.end_time.strftime('%H:%M')
-        } for s in schedules])
+        
+        # Get upcoming special schedules created by this HOD
+        today = date.today()
+        special_schedules = SpecialSchedule.query.filter(
+            SpecialSchedule.creating_hod_id == get_jwt()['id'],
+            SpecialSchedule.class_date >= today
+        ).order_by(SpecialSchedule.class_date).all()
+
+        return jsonify({
+            'weekly_schedules': [s.to_dict() for s in schedules],
+            'special_schedules': [s.to_dict() for s in special_schedules]
+        })
 
     if request.method == 'POST':
         data = request.json
@@ -57,8 +70,12 @@ def manage_hod_schedules():
             start_time=time.fromisoformat(data['start_time']), end_time=time.fromisoformat(data['end_time']),
             semester_id=active_semester.id
         )
-        db.session.add(new_schedule)
-        db.session.commit()
+        try:
+            db.session.add(new_schedule)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'msg': 'This exact class schedule already exists.'}), 409
         return jsonify({'msg': 'Class scheduled successfully'}), 201
 
 @hod_bp.route('/schedules/<int:schedule_id>', methods=['DELETE'])
@@ -78,6 +95,19 @@ def delete_hod_schedule(schedule_id):
     db.session.commit()
     return jsonify({'msg': 'Scheduled class deleted successfully'})
 
+@hod_bp.route('/special-schedules/<int:schedule_id>', methods=['DELETE'])
+@jwt_required()
+def delete_special_schedule(schedule_id):
+    hod_id = get_jwt()['id']
+    schedule_item = db.session.get(SpecialSchedule, schedule_id)
+    if not schedule_item:
+        return jsonify({'msg': 'Special schedule not found'}), 404
+    if schedule_item.creating_hod_id != hod_id:
+        return jsonify({'msg': 'Forbidden: You can only delete special schedules you created.'}), 403
+    db.session.delete(schedule_item)
+    db.session.commit()
+    return jsonify({'msg': 'Special scheduled class deleted successfully'})
+
 @hod_bp.route('/attendance/pending', methods=['GET'])
 @jwt_required()
 def hod_pending_attendance():
@@ -90,16 +120,7 @@ def hod_pending_attendance():
         Program.department_id == department_id
     ).order_by(Attendance.timestamp.desc()).all()
 
-    result = []
-    for att in attendances:
-        cr_user = db.session.get(User, att.cr_id)
-        result.append({
-            'id': att.id, 'lecturer_name': att.schedule.lecturer.full_name,
-            'cr_name': cr_user.full_name if cr_user else 'N/A', 'course': att.schedule.subject.name,
-            'present': att.present, 'timestamp': att.timestamp.isoformat(),
-            'excuse_comment': att.excuse_comment, 'excuse_file': att.excuse_file
-        })
-    return jsonify(result)
+    return jsonify([att.to_dict() for att in attendances])
 
 @hod_bp.route('/attendance/verify/<int:attendance_id>', methods=['POST'])
 @jwt_required()

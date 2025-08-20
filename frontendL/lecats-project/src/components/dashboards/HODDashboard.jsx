@@ -9,6 +9,7 @@ function HODDashboard() {
   
   // State for Timetable Management
   const [schedules, setSchedules] = useState([]);
+  const [specialSchedules, setSpecialSchedules] = useState([]); // New state for special classes
   const [subjects, setSubjects] = useState([]);
   const [lecturers, setLecturers] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -51,9 +52,10 @@ function HODDashboard() {
   async function fetchSchedules() {
     try {
       const res = await api.get('/api/hod/schedules');
-      setSchedules(res.data);
+      setSchedules(res.data.weekly_schedules);
+      setSpecialSchedules(res.data.special_schedules); // Set the new state
     } catch (error) {
-      toast.error(error.response?.data?.msg || 'Failed to fetch schedule');
+      toast.error(error.response?.data?.msg || 'Failed to fetch schedules');
     }
   }
 
@@ -99,6 +101,7 @@ function HODDashboard() {
     try {
       await api.post('/api/hod/special-schedules', specialScheduleFormData);
       toast.success('Special class scheduled successfully!');
+      fetchSchedules(); // Refresh to show new special class
     } catch (error) {
       toast.error(error.response?.data?.msg || 'Failed to schedule special class');
     }
@@ -112,6 +115,18 @@ function HODDashboard() {
         fetchSchedules();
       } catch (error) {
         toast.error(error.response?.data?.msg || 'Failed to delete scheduled class');
+      }
+    }
+  };
+
+  const handleDeleteSpecialSchedule = async (id) => {
+    if (window.confirm('Are you sure you want to delete this special class?')) {
+      try {
+        await api.delete(`/api/hod/special-schedules/${id}`);
+        toast.success('Special class deleted!');
+        fetchSchedules(); // Refresh both lists
+      } catch (error) {
+        toast.error(error.response?.data?.msg || 'Failed to delete special class');
       }
     }
   };
@@ -161,10 +176,18 @@ function HODDashboard() {
       </div>
       
       <div className="card shadow-sm">
-        <div className="card-header d-flex align-items-center"><Table size={20} className="me-2"/><h5 className="mb-0">Current Timetable (Active Semester)</h5></div>
+        <div className="card-header d-flex align-items-center"><Table size={20} className="me-2"/><h5 className="mb-0">Current Weekly Timetable (Active Semester)</h5></div>
         <div className="card-body p-0"><div className="table-responsive"><table className="table table-striped mb-0 align-middle">
             <thead className="table-light"><tr><th>Subject</th><th>Lecturer</th><th>Day</th><th>Time</th><th className="text-center">Action</th></tr></thead>
             <tbody>{schedules.length > 0 ? schedules.map(s => (<tr key={s.id}><td><strong>{s.subject_name}</strong></td><td>{s.lecturer_name}</td><td>{s.day_of_week}</td><td>{s.start_time} - {s.end_time}</td><td className="text-center"><button className="btn btn-outline-danger btn-sm" onClick={() => handleDeleteSchedule(s.id)}><Trash/></button></td></tr>)) : <tr><td colSpan="5" className="text-center text-muted p-4">No classes scheduled yet.</td></tr>}</tbody>
+        </table></div></div>
+      </div>
+      
+      <div className="card shadow-sm mt-4">
+        <div className="card-header bg-warning d-flex align-items-center"><Table size={20} className="me-2"/><h5 className="mb-0">Upcoming Special Schedules</h5></div>
+        <div className="card-body p-0"><div className="table-responsive"><table className="table table-striped mb-0 align-middle">
+            <thead className="table-light"><tr><th>Subject</th><th>Lecturer</th><th>Date</th><th>Time</th><th className="text-center">Action</th></tr></thead>
+            <tbody>{specialSchedules.length > 0 ? specialSchedules.map(s => (<tr key={s.id}><td><strong>{s.subject_name}</strong></td><td>{s.lecturer_name}</td><td>{s.class_date}</td><td>{s.start_time} - {s.end_time}</td><td className="text-center"><button className="btn btn-outline-danger btn-sm" onClick={() => handleDeleteSpecialSchedule(s.id)}><Trash/></button></td></tr>)) : <tr><td colSpan="5" className="text-center text-muted p-4">No special classes scheduled.</td></tr>}</tbody>
         </table></div></div>
       </div>
     </>

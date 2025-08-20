@@ -1,8 +1,7 @@
-// src/api.js
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-// Create a new instance of axios with a base URL
+
 const api = axios.create({
   baseURL: 'http://localhost:5000',
 });
@@ -26,8 +25,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If an API call fails with a 401 Unauthorized error,
-    // it often means the token is expired, so we redirect to login.
+
     if (error.response && error.response.status === 401) {
       toast.error("Session expired. Please log in again.");
       localStorage.removeItem('token');

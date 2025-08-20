@@ -136,7 +136,6 @@ class Attendance(db.Model):
             'excuse_file': self.excuse_file,
         }
         
-        # In app/models.py
 
 class SpecialSchedule(db.Model):
     __tablename__ = 'special_schedule'
@@ -148,8 +147,19 @@ class SpecialSchedule(db.Model):
     end_time = db.Column(db.Time, nullable=False)
     creating_hod_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     target_department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
+   
 
     subject = db.relationship('Subject')
     lecturer = db.relationship('User', foreign_keys=[lecturer_id])
     hod = db.relationship('User', foreign_keys=[creating_hod_id])
     target_department = db.relationship('Department')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'subject_name': self.subject.name if self.subject else None,
+            'lecturer_name': self.lecturer.full_name if self.lecturer else None,
+            'class_date': self.class_date.isoformat(),
+            'start_time': self.start_time.strftime('%H:%M'),
+            'end_time': self.end_time.strftime('%H:%M')
+        }

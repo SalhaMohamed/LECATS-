@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import useDarkMode from '../../useDarkMode'; // Make sure path is correct
+import useDarkMode from '../../useDarkMode'; 
 import { SunFill, MoonStarsFill } from 'react-bootstrap-icons';
 
 function Navbar() {
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState({ name: '', role: '' });
-    const [theme, toggleTheme] = useDarkMode(); // ADD THIS LINE
+    const [theme, toggleTheme] = useDarkMode(); 
     
-    // ... rest of the component
 
-    // This hook runs when the Navbar is first loaded.
+   
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -27,7 +26,7 @@ function Navbar() {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        // After logging out, clear the user info and navigate to login
+       
         setUserInfo({ name: '', role: '' });
         navigate('/');
     };
@@ -50,7 +49,7 @@ function Navbar() {
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
             <div className="container-fluid">
-                {/* This link now points to the user's specific dashboard */}
+               
                 <NavLink className="navbar-brand" to={getDashboardPath()}>LECATS</NavLink>
                 <div className="d-flex align-items-center">
                     <div className="form-check form-switch me-3">
@@ -67,7 +66,7 @@ function Navbar() {
                     {theme === 'dark' ? <MoonStarsFill /> : <SunFill />}
                     </label>
                     </div>
-                    {/* This shows a welcome message with the user's name */}
+                   
                     {userInfo.name && <span className="navbar-text me-3">Welcome, {userInfo.name}</span>}
                     <button onClick={handleLogout} className="btn btn-outline-light">Logout</button>
                     

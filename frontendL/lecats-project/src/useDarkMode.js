@@ -1,4 +1,3 @@
-// src/useDarkMode.js
 import { useEffect, useState } from 'react';
 
 function useDarkMode() {
@@ -14,7 +13,7 @@ function useDarkMode() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  // Function to toggle between light and dark
+ 
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
